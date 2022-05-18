@@ -1,5 +1,6 @@
 
 const express = require('express')
+const checkMillionDollarIdea = require('../checkMillionDollarIdea')
 const {getAllFromDatabase, addToDatabase ,getFromDatabaseById,updateInstanceInDatabase,deleteFromDatabasebyId} = require('../db')
 
 const ideasRouter = express.Router()
@@ -17,13 +18,17 @@ ideasRouter.param('ideaId',(req,res,next,id) => {
 ideasRouter.get('/',(req,res) => {
   res.send(getAllFromDatabase('ideas'))
 })
-ideasRouter.post('/',(req,res) => {
+ideasRouter.post('/',checkMillionDollarIdea ,(req,res) => {
   const {name , description , numWeeks  , weeklyRevenue} = req.body
-  const minions = getAllFromDatabase('ideas')
-  const newMinion = addToDatabase('ideas',{
-    name , description , numWeeks:Number(numWeeks) , weeklyRevenue:Number(weeklyRevenue) ,id:minions.length -1
-  })
-  res.status(201).send(newMinion)
+  const ideas = getAllFromDatabase('ideas')
+  if(!name && !description && isNaN(numWeeks) && isNaN(weeklyRevenue)){
+    req.status(500)
+  }else{
+    const newIdea = addToDatabase('ideas',{
+      name , description , numWeeks:Number(numWeeks) , weeklyRevenue:Number(weeklyRevenue) ,id:ideas.length -1
+    })
+    res.status(201).send(newIdea)
+  }
 })
 ideasRouter.get('/:ideaId',(req,res) => {
   res.send(req.idea)
