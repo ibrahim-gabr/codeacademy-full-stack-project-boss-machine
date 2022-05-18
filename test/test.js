@@ -240,242 +240,242 @@ const app = require('../server');
 
 // });
 
-describe('/api/ideas routes', function() {
-  let fakeDb = require('../server/db.js');
+// describe('/api/ideas routes', function() {
+//   let fakeDb = require('../server/db.js');
 
-  describe('GET /api/ideas', function() {
+//   describe('GET /api/ideas', function() {
 
-    it('returns an array', function() {
-      return request(app)
-        .get('/api/ideas')
-        .expect(200)
-        .then((response) => {
-          expect(response.body).to.be.an.instanceOf(Array);
-        });
-    });
+//     it('returns an array', function() {
+//       return request(app)
+//         .get('/api/ideas')
+//         .expect(200)
+//         .then((response) => {
+//           expect(response.body).to.be.an.instanceOf(Array);
+//         });
+//     });
 
-    it('returns an array of all ideas', function() {
-      return request(app)
-        .get('/api/ideas')
-        .expect(200)
-        .then((response) => {
-          let length = fakeDb.getAllFromDatabase('ideas').length;
-          expect(response.body.length).to.be.equal(length);
-          response.body.forEach((idea) => {
-            expect(idea).to.have.ownProperty('id');
-            expect(idea).to.have.ownProperty('name');
-            expect(idea).to.have.ownProperty('description');
-            expect(idea).to.have.ownProperty('weeklyRevenue');
-            expect(idea).to.have.ownProperty('numWeeks');
-          });
-        });
-    });
+//     it('returns an array of all ideas', function() {
+//       return request(app)
+//         .get('/api/ideas')
+//         .expect(200)
+//         .then((response) => {
+//           let length = fakeDb.getAllFromDatabase('ideas').length;
+//           expect(response.body.length).to.be.equal(length);
+//           response.body.forEach((idea) => {
+//             expect(idea).to.have.ownProperty('id');
+//             expect(idea).to.have.ownProperty('name');
+//             expect(idea).to.have.ownProperty('description');
+//             expect(idea).to.have.ownProperty('weeklyRevenue');
+//             expect(idea).to.have.ownProperty('numWeeks');
+//           });
+//         });
+//     });
 
-  });
+//   });
 
-  describe('GET /ideas/:ideaId', function() {
+//   describe('GET /ideas/:ideaId', function() {
 
-    it('returns a single idea object', function() {
-      return request(app)
-        .get(`/api/ideas/1`)
-        .expect(200)
-        .then(response => response.body)
-        .then((idea) => {
-          expect(idea).to.be.an.instanceOf(Object);
-          expect(idea).to.not.be.an.instanceOf(Array);
-        });
-    });
+//     it('returns a single idea object', function() {
+//       return request(app)
+//         .get(`/api/ideas/1`)
+//         .expect(200)
+//         .then(response => response.body)
+//         .then((idea) => {
+//           expect(idea).to.be.an.instanceOf(Object);
+//           expect(idea).to.not.be.an.instanceOf(Array);
+//         });
+//     });
 
-    it('returns a full idea object with correct properties', function() {
-      return request(app)
-      .get(`/api/ideas/1`)
-      .expect(200)
-      .then((response) => response.body)
-      .then((idea) => {
-        expect(idea).to.have.ownProperty('id');
-        expect(idea).to.have.ownProperty('name');
-        expect(idea).to.have.ownProperty('description');
-        expect(idea).to.have.ownProperty('weeklyRevenue');
-        expect(idea).to.have.ownProperty('numWeeks');
-      });
-    });
+//     it('returns a full idea object with correct properties', function() {
+//       return request(app)
+//       .get(`/api/ideas/1`)
+//       .expect(200)
+//       .then((response) => response.body)
+//       .then((idea) => {
+//         expect(idea).to.have.ownProperty('id');
+//         expect(idea).to.have.ownProperty('name');
+//         expect(idea).to.have.ownProperty('description');
+//         expect(idea).to.have.ownProperty('weeklyRevenue');
+//         expect(idea).to.have.ownProperty('numWeeks');
+//       });
+//     });
 
-    it('returned idea has the correct id', function() {
-      return request(app)
-        .get(`/api/ideas/1`)
-        .expect(200)
-        .then((response) => response.body)
-        .then((idea) => {
-          expect(idea.id).to.equal('1');
-        });
-    });
+//     it('returned idea has the correct id', function() {
+//       return request(app)
+//         .get(`/api/ideas/1`)
+//         .expect(200)
+//         .then((response) => response.body)
+//         .then((idea) => {
+//           expect(idea.id).to.equal('1');
+//         });
+//     });
 
-    it('called with a non-numeric ID returns a 404 error', function() {
-      return request(app)
-        .get('/api/ideas/notAnId')
-        .expect(404);
-    });
+//     it('called with a non-numeric ID returns a 404 error', function() {
+//       return request(app)
+//         .get('/api/ideas/notAnId')
+//         .expect(404);
+//     });
 
-    it('called with an invalid ID returns a 404 error', function() {
-      return request(app)
-        .get('/api/ideas/450')
-        .expect(404);
-    });
+//     it('called with an invalid ID returns a 404 error', function() {
+//       return request(app)
+//         .get('/api/ideas/450')
+//         .expect(404);
+//     });
 
-  });
+//   });
 
-  describe('PUT /api/ideas/:ideaId', function() {
+//   describe('PUT /api/ideas/:ideaId', function() {
 
-    it('updates the correct idea and returns it', function() {
-      let initialIdea;
-      let updatedIdeaInfo;
-      return request(app)
-        .get('/api/ideas/1')
-        .then((response) => {
-          initialIdea = response.body
-        })
-        .then(() => {
-          updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Test'});
-          return request(app)
-            .put('/api/ideas/1')
-            .send(updatedIdeaInfo);
-        })
-        .then((response) => {
-          expect(response.body).to.be.deep.equal(updatedIdeaInfo);
-        });
-    });
+//     it('updates the correct idea and returns it', function() {
+//       let initialIdea;
+//       let updatedIdeaInfo;
+//       return request(app)
+//         .get('/api/ideas/1')
+//         .then((response) => {
+//           initialIdea = response.body
+//         })
+//         .then(() => {
+//           updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Test'});
+//           return request(app)
+//             .put('/api/ideas/1')
+//             .send(updatedIdeaInfo);
+//         })
+//         .then((response) => {
+//           expect(response.body).to.be.deep.equal(updatedIdeaInfo);
+//         });
+//     });
 
-    it('updates the correct idea and persists to the database', function() {
-      let initialIdea;
-      let updatedIdeaInfo;
-      return request(app)
-        .get('/api/ideas/1')
-        .then((response) => {
-          initialIdea = response.body
-        })
-        .then(() => {
-          updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Persistence Test'});
-          return request(app)
-            .put('/api/ideas/1')
-            .send(updatedIdeaInfo);
-        })
-        .then(() => {
-          return request(app)
-            .get('/api/ideas/1');
-        })
-        .then((response) => response.body)
-        .then((ideaFromDatabase) => {
-          expect(ideaFromDatabase.name).to.equal('Persistence Test');
-        });
-    });
+//     it('updates the correct idea and persists to the database', function() {
+//       let initialIdea;
+//       let updatedIdeaInfo;
+//       return request(app)
+//         .get('/api/ideas/1')
+//         .then((response) => {
+//           initialIdea = response.body
+//         })
+//         .then(() => {
+//           updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Persistence Test'});
+//           return request(app)
+//             .put('/api/ideas/1')
+//             .send(updatedIdeaInfo);
+//         })
+//         .then(() => {
+//           return request(app)
+//             .get('/api/ideas/1');
+//         })
+//         .then((response) => response.body)
+//         .then((ideaFromDatabase) => {
+//           expect(ideaFromDatabase.name).to.equal('Persistence Test');
+//         });
+//     });
 
-    it('called with a non-numeric ID returns a 404 error', function() {
-      return request(app)
-        .put('/api/ideas/notAnId')
-        .expect(404);
-    });
+//     it('called with a non-numeric ID returns a 404 error', function() {
+//       return request(app)
+//         .put('/api/ideas/notAnId')
+//         .expect(404);
+//     });
 
-    it('called with an invalid ID returns a 404 error', function() {
-      return request(app)
-        .put('/api/ideas/450')
-        .expect(404);
-    });
+//     it('called with an invalid ID returns a 404 error', function() {
+//       return request(app)
+//         .put('/api/ideas/450')
+//         .expect(404);
+//     });
 
-    it('called with an invalid ID does not change the database array', function() {
-      let initialIdeasArray;
-      return request(app)
-        .get('/api/ideas')
-        .then((response) => {
-          initialIdeasArray = response.body;
-        })
-        .then(() => {
-          return request(app)
-            .put('/api/ideas/notAnId')
-            .send({key: 'value'});
-        })
-        .then(() => {
-          return request(app).get('/api/ideas');
-        })
-        .then((response) => response.body)
-        .then((postRequestIdeasArray) => {
-          expect(initialIdeasArray).to.be.deep.equal(postRequestIdeasArray);
-        });
-    });
+//     it('called with an invalid ID does not change the database array', function() {
+//       let initialIdeasArray;
+//       return request(app)
+//         .get('/api/ideas')
+//         .then((response) => {
+//           initialIdeasArray = response.body;
+//         })
+//         .then(() => {
+//           return request(app)
+//             .put('/api/ideas/notAnId')
+//             .send({key: 'value'});
+//         })
+//         .then(() => {
+//           return request(app).get('/api/ideas');
+//         })
+//         .then((response) => response.body)
+//         .then((postRequestIdeasArray) => {
+//           expect(initialIdeasArray).to.be.deep.equal(postRequestIdeasArray);
+//         });
+//     });
 
 
-  });
+//   });
 
-  describe('POST /api/ideas', function() {
+//   describe('POST /api/ideas', function() {
 
-    it('should add a new idea if all supplied information is correct', function() {
-      let initialIdeasArray;
-      let newIdeaObject = {
-        name: 'Test',
-        description: '',
-        weeklyRevenue: 200000,
-        numWeeks: 10,
-      }
-      return request(app)
-        .get('/api/ideas')
-        .then((response) => {
-          initialIdeasArray = response.body;
-        })
-        .then(() => {
-          return request(app)
-            .post('/api/ideas')
-            .send(newIdeaObject)
-            .expect(201);
-        })
-        .then((response) => response.body)
-        .then((createdIdea) => {
-          newIdeaObject.id = createdIdea.id;
-          expect(newIdeaObject).to.be.deep.equal(createdIdea);
-        });
-    });
+//     it('should add a new idea if all supplied information is correct', function() {
+//       let initialIdeasArray;
+//       let newIdeaObject = {
+//         name: 'Test',
+//         description: '',
+//         weeklyRevenue: 200000,
+//         numWeeks: 10,
+//       }
+//       return request(app)
+//         .get('/api/ideas')
+//         .then((response) => {
+//           initialIdeasArray = response.body;
+//         })
+//         .then(() => {
+//           return request(app)
+//             .post('/api/ideas')
+//             .send(newIdeaObject)
+//             .expect(201);
+//         })
+//         .then((response) => response.body)
+//         .then((createdIdea) => {
+//           newIdeaObject.id = createdIdea.id;
+//           expect(newIdeaObject).to.be.deep.equal(createdIdea);
+//         });
+//     });
 
-  });
+//   });
 
-  describe('DELETE /api/ideas', function() {
+//   describe('DELETE /api/ideas', function() {
     
-    it('deletes the correct minion by id', function() {
-      let initialIdeasArray;
-      return request(app)
-        .get('/api/ideas')
-        .then((response) => {
-          initialIdeasArray = response.body;
-        })
-        .then(() => {
-          return request(app)
-            .delete('/api/ideas/1')
-            .expect(204);
-        })
-        .then(() => {
-          return request(app)
-            .get('/api/ideas');
-        })
-        .then((response) => response.body)
-        .then((afterDeleteIdeasArray) => {
-          expect(afterDeleteIdeasArray).to.not.be.deep.equal(initialIdeasArray);
-          let shouldBeDeletedIdea = afterDeleteIdeasArray.find(el => el.id === '1');
-          expect(shouldBeDeletedIdea).to.be.undefined;
-        });
-    });
+//     it('deletes the correct minion by id', function() {
+//       let initialIdeasArray;
+//       return request(app)
+//         .get('/api/ideas')
+//         .then((response) => {
+//           initialIdeasArray = response.body;
+//         })
+//         .then(() => {
+//           return request(app)
+//             .delete('/api/ideas/1')
+//             .expect(204);
+//         })
+//         .then(() => {
+//           return request(app)
+//             .get('/api/ideas');
+//         })
+//         .then((response) => response.body)
+//         .then((afterDeleteIdeasArray) => {
+//           expect(afterDeleteIdeasArray).to.not.be.deep.equal(initialIdeasArray);
+//           let shouldBeDeletedIdea = afterDeleteIdeasArray.find(el => el.id === '1');
+//           expect(shouldBeDeletedIdea).to.be.undefined;
+//         });
+//     });
 
-    it('called with a non-numeric ID returns a 404 error', function() {
-      return request(app)
-        .delete('/api/ideas/notAnId')
-        .expect(404);
-    });
+//     it('called with a non-numeric ID returns a 404 error', function() {
+//       return request(app)
+//         .delete('/api/ideas/notAnId')
+//         .expect(404);
+//     });
   
-    it('called with an invalid ID returns a 404 error', function() {
-      return request(app)
-        .delete('/api/ideas/450')
-        .expect(404);
-    });
+//     it('called with an invalid ID returns a 404 error', function() {
+//       return request(app)
+//         .delete('/api/ideas/450')
+//         .expect(404);
+//     });
 
-  });
+//   });
 
-});
+// });
 
 // describe('checkMillionDollarIdea middleware', function() {
 
@@ -578,113 +578,113 @@ describe('/api/ideas routes', function() {
 
 // });
 
-// describe('/api/meetings routes', function() {
-//   let fakeDb = require('../server/db.js');
+describe('/api/meetings routes', function() {
+  let fakeDb = require('../server/db.js');
   
-//   describe('GET /api/meetings', function() {
+  describe('GET /api/meetings', function() {
     
-//     it('returns an array', function() {
-//       return request(app)
-//         .get('/api/meetings')
-//         .expect(200)
-//         .then((response) => {
-//           expect(response.body).to.be.an.instanceOf(Array);
-//         });
-//     });
+    it('returns an array', function() {
+      return request(app)
+        .get('/api/meetings')
+        .expect(200)
+        .then((response) => {
+          expect(response.body).to.be.an.instanceOf(Array);
+        });
+    });
   
-//     it('returns an array of all meetings', function() {
-//       return request(app)
-//         .get('/api/meetings')
-//         .expect(200)
-//         .then((response) => {
-//           let length = fakeDb.getAllFromDatabase('meetings').length;
-//           expect(response.body.length).to.be.equal(length);
-//           response.body.forEach((minion) => {
-//             expect(minion).to.have.ownProperty('time');
-//             expect(minion).to.have.ownProperty('date');
-//             expect(minion).to.have.ownProperty('day');
-//             expect(minion).to.have.ownProperty('note');
-//           });
-//         });
-//     });
+    it('returns an array of all meetings', function() {
+      return request(app)
+        .get('/api/meetings')
+        .expect(200)
+        .then((response) => {
+          let length = fakeDb.getAllFromDatabase('meetings').length;
+          expect(response.body.length).to.be.equal(length);
+          response.body.forEach((minion) => {
+            expect(minion).to.have.ownProperty('time');
+            expect(minion).to.have.ownProperty('date');
+            expect(minion).to.have.ownProperty('day');
+            expect(minion).to.have.ownProperty('note');
+          });
+        });
+    });
   
-//   });
+  });
   
-//   describe('POST /api/meetings', function() {
+  describe('POST /api/meetings', function() {
   
-//     it('should create a new meetings and return it', function() {
-//       return request(app)
-//         .post('/api/meetings')
-//         .expect(201)
-//         .then((response) => response.body)
-//         .then((createdMeeting) => {
-//           expect(createdMeeting).to.have.ownProperty('time');
-//           expect(createdMeeting).to.have.ownProperty('date');
-//           expect(createdMeeting).to.have.ownProperty('day');
-//           expect(createdMeeting).to.have.ownProperty('note');
-//         });
-//     });
+    it('should create a new meetings and return it', function() {
+      return request(app)
+        .post('/api/meetings')
+        .expect(201)
+        .then((response) => response.body)
+        .then((createdMeeting) => {
+          expect(createdMeeting).to.have.ownProperty('time');
+          expect(createdMeeting).to.have.ownProperty('date');
+          expect(createdMeeting).to.have.ownProperty('day');
+          expect(createdMeeting).to.have.ownProperty('note');
+        });
+    });
   
-//     it('should persist the created meeting to the database', function() {
-//       let initialMeetingsArray;
-//       let newlyCreatedMeeting;
-//       return request(app)
-//         .get('/api/meetings')
-//         .then((response) => {
-//           initialMeetingsArray = response.body;
-//         })
-//         .then(() => {
-//           return request(app)
-//             .post('/api/meetings')
-//             .expect(201);
-//         })
-//         .then((response) => response.body)
-//         .then((createdMeeting) => {
-//           newlyCreatedMeeting = createdMeeting;
-//           return request(app)
-//             .get('/api/meetings')
-//         })
-//         .then((response) => response.body)
-//         .then((newMeetingsArray) => {
-//           expect(newMeetingsArray.length).to.equal(initialMeetingsArray.length + 1);
-//           let createdMeetingFound = newMeetingsArray.some((meeting) => {
-//             return meeting.id === newlyCreatedMeeting.id;
-//           });
-//           expect(createdMeetingFound).to.be.true;
-//         });
-//     });
+    it('should persist the created meeting to the database', function() {
+      let initialMeetingsArray;
+      let newlyCreatedMeeting;
+      return request(app)
+        .get('/api/meetings')
+        .then((response) => {
+          initialMeetingsArray = response.body;
+        })
+        .then(() => {
+          return request(app)
+            .post('/api/meetings')
+            .expect(201);
+        })
+        .then((response) => response.body)
+        .then((createdMeeting) => {
+          newlyCreatedMeeting = createdMeeting;
+          return request(app)
+            .get('/api/meetings')
+        })
+        .then((response) => response.body)
+        .then((newMeetingsArray) => {
+          expect(newMeetingsArray.length).to.equal(initialMeetingsArray.length + 1);
+          let createdMeetingFound = newMeetingsArray.some((meeting) => {
+            return meeting.id === newlyCreatedMeeting.id;
+          });
+          expect(createdMeetingFound).to.be.true;
+        });
+    });
   
-//   });
+  });
   
-//   describe('DELETE /api/meetings route', function() {
+  describe('DELETE /api/meetings route', function() {
   
-//     it('deletes all meetings', function() {
-//       let initialMeetingsArray;
-//       return request(app)
-//         .get('/api/meetings')
-//         .then((response) => {
-//           initialMeetingsArray = response.body;
-//         })
-//         .then(() => {
-//           return request(app)
-//             .delete('/api/meetings')
-//             .expect(204);
-//         })
-//         .then(() => {
-//           return request(app)
-//             .get('/api/meetings');
-//         })
-//         .then((response) => response.body)
-//         .then((afterDeleteIdeasArray) => {
-//           expect(afterDeleteIdeasArray).to.be.an.instanceOf(Array);
-//           expect(afterDeleteIdeasArray).to.have.property('length', 0);
-//         });
+    it('deletes all meetings', function() {
+      let initialMeetingsArray;
+      return request(app)
+        .get('/api/meetings')
+        .then((response) => {
+          initialMeetingsArray = response.body;
+        })
+        .then(() => {
+          return request(app)
+            .delete('/api/meetings')
+            .expect(204);
+        })
+        .then(() => {
+          return request(app)
+            .get('/api/meetings');
+        })
+        .then((response) => response.body)
+        .then((afterDeleteIdeasArray) => {
+          expect(afterDeleteIdeasArray).to.be.an.instanceOf(Array);
+          expect(afterDeleteIdeasArray).to.have.property('length', 0);
+        });
   
-//     });
+    });
   
-//   });
+  });
 
-// });
+});
 
 // xdescribe('BONUS: /api/minions/:minionId/work routes', function() {
 
