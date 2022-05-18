@@ -3,479 +3,479 @@ const request = require('supertest');
 
 const app = require('../server');
 
-describe('/api/minions routes', function() {
-  let fakeDb = require('../server/db.js');
-
-  describe('GET /api/minions', function() {
-
-    it('returns an array', function() {
-      return request(app)
-        .get('/api/minions')
-        .expect(200)
-        .then((response) => {
-          expect(response.body).to.be.an.instanceOf(Array);
-        });
-    });
-
-    it('returns an array of all minions', function() {
-      return request(app)
-        .get('/api/minions')
-        .expect(200)
-        .then((response) => {
-          let length = fakeDb.getAllFromDatabase('minions').length;
-          expect(response.body.length).to.be.equal(length);
-          response.body.forEach((minion) => {
-            expect(minion).to.have.ownProperty('id');
-            expect(minion).to.have.ownProperty('name');
-            expect(minion).to.have.ownProperty('title');
-            expect(minion).to.have.ownProperty('weaknesses');
-            expect(minion).to.have.ownProperty('salary');
-          });
-        });
-    });
-
-  });
-
-  describe('GET /minions/:minionId', function() {
-  
-      it('returns a single minion object', function() {
-        return request(app)
-          .get(`/api/minions/1`)
-          .expect(200)
-          .then((response) => {
-            const minion = response.body;
-            expect(minion).to.be.an.instanceOf(Object);
-            expect(minion).to.not.be.an.instanceOf(Array);
-          });
-      });
-  
-      it('returns a full minion object', function() {
-        return request(app)
-        .get(`/api/minions/1`)
-        .expect(200)
-        .then((response) => {
-          let minion = response.body;
-          expect(minion).to.have.ownProperty('id');
-          expect(minion).to.have.ownProperty('name');
-          expect(minion).to.have.ownProperty('title');
-          expect(minion).to.have.ownProperty('weaknesses');
-          expect(minion).to.have.ownProperty('salary');
-        });
-      });
-  
-      it('returned minion has the correct id', function() {
-        return request(app)
-          .get(`/api/minions/1`)
-          .expect(200)
-          .then((response) => {
-            let minion = response.body;
-            expect(minion.id).to.be.an.equal('1');
-          });
-      });
-
-    it('called with a non-numeric ID returns a 404 error', function() {
-      return request(app)
-        .get('/api/minions/notAnId')
-        .expect(404);
-    });
-
-    it('called with an invalid ID returns a 404 error', function() {
-      return request(app)
-        .get('/api/minions/450')
-        .expect(404);
-    });
-
-  });
-
-  describe('PUT /api/minions/:minionId', function() {
-    
-    it('updates the correct minion and returns it', function() {
-      let initialMinion;
-      let updatedMinionInfo;
-      return request(app)
-        .get('/api/minions/1')
-        .then((response) => {
-          initialMinion = response.body
-        })
-        .then(() => {
-          updatedMinionInfo = Object.assign({}, initialMinion, {name: 'Test'});
-          return request(app)
-            .put('/api/minions/1')
-            .send(updatedMinionInfo);
-        })
-        .then((response) => {
-          expect(response.body).to.be.deep.equal(updatedMinionInfo);
-        });
-    });
-
-    it('updates the correct minion and persists to the database', function() {
-      let initialMinion;
-      let updatedMinionInfo;
-      return request(app)
-        .get('/api/minions/1')
-        .then((response) => {
-          initialMinion = response.body
-        })
-        .then(() => {
-          updatedMinionInfo = Object.assign({}, initialMinion, {name: 'Persistence Test'});
-          return request(app)
-            .put('/api/minions/1')
-            .send(updatedMinionInfo);
-        })
-        .then(() => {
-          return request(app)
-            .get('/api/minions/1');
-        })
-        .then((response) => response.body)
-        .then(minionFromDatabase => {
-          expect(minionFromDatabase.name).to.equal('Persistence Test');
-        });
-    });
-
-    it('called with a non-numeric ID returns a 404 error', function() {
-      return request(app)
-        .put('/api/minions/notAnId')
-        .expect(404);
-    });
-
-    it('called with an invalid ID returns a 404 error', function() {
-      return request(app)
-        .put('/api/minions/450')
-        .expect(404);
-    });
-
-    it('called with an invalid ID does not change the database array', function() {
-      let initialMinionsArray;
-      return request(app)
-        .get('/api/minions')
-        .then((response) => {
-          initialMinionsArray = response.body;
-        })
-        .then(() => {
-          return request(app)
-            .put('/api/minions/notAnId')
-            .send({key: 'value'});
-        })
-        .then(() => {
-          return request(app).get('/api/minions');
-        })
-        .then((afterPutResponse) => {
-          let postRequestMinionsArray = afterPutResponse.body;
-          expect(initialMinionsArray).to.be.deep.equal(postRequestMinionsArray);
-        });
-    });
-
-  });
-
-  describe('POST /api/minions', function() {
-
-    it('should add a new minion if all supplied information is correct', function() {
-      let initialMinionsArray;
-      let newMinionObject = {
-        name: 'Test',
-        title: '',
-        salary: 0,
-        weaknesses: '',
-      }
-      return request(app)
-        .get('/api/minions')
-        .then((response) => {
-          initialMinionsArray = response.body;
-        })
-        .then(() => {
-          return request(app)
-            .post('/api/minions')
-            .send(newMinionObject)
-            .expect(201);
-        })
-        .then((response) => response.body)
-        .then((createdMinion) => {
-          newMinionObject.id = createdMinion.id;
-          expect(newMinionObject).to.be.deep.equal(createdMinion);
-        });
-    });
-
-  });
-
-  describe('DELETE /api/minions', function() {
-    
-    it('deletes the correct minion by id', function() {
-      let initialMinionsArray;
-      return request(app)
-        .get('/api/minions')
-        .then((response) => {
-          initialMinionsArray = response.body;
-        })
-        .then(() => {
-          return request(app)
-            .delete('/api/minions/1')
-            .expect(204);
-        })
-        .then(() => {
-          return request(app)
-            .get('/api/minions');
-        })
-        .then((response) => response.body)
-        .then((afterDeleteMinionsArray) => {
-          expect(afterDeleteMinionsArray).to.not.be.deep.equal(initialMinionsArray);
-          let shouldBeDeletedMinion = afterDeleteMinionsArray.find(el => el.id === '1');
-          expect(shouldBeDeletedMinion).to.be.undefined;
-        });
-
-    });
-
-    it('called with a non-numeric ID returns a 404 error', function() {
-      return request(app)
-        .delete('/api/minions/notAnId')
-        .expect(404);
-    });
-
-    it('called with an invalid ID returns a 404 error', function() {
-      return request(app)
-        .delete('/api/minions/450')
-        .expect(404);
-    });
-
-  });
-
-});
-
-// describe('/api/ideas routes', function() {
+// describe('/api/minions routes', function() {
 //   let fakeDb = require('../server/db.js');
 
-//   describe('GET /api/ideas', function() {
+//   describe('GET /api/minions', function() {
 
 //     it('returns an array', function() {
 //       return request(app)
-//         .get('/api/ideas')
+//         .get('/api/minions')
 //         .expect(200)
 //         .then((response) => {
 //           expect(response.body).to.be.an.instanceOf(Array);
 //         });
 //     });
 
-//     it('returns an array of all ideas', function() {
+//     it('returns an array of all minions', function() {
 //       return request(app)
-//         .get('/api/ideas')
+//         .get('/api/minions')
 //         .expect(200)
 //         .then((response) => {
-//           let length = fakeDb.getAllFromDatabase('ideas').length;
+//           let length = fakeDb.getAllFromDatabase('minions').length;
 //           expect(response.body.length).to.be.equal(length);
-//           response.body.forEach((idea) => {
-//             expect(idea).to.have.ownProperty('id');
-//             expect(idea).to.have.ownProperty('name');
-//             expect(idea).to.have.ownProperty('description');
-//             expect(idea).to.have.ownProperty('weeklyRevenue');
-//             expect(idea).to.have.ownProperty('numWeeks');
+//           response.body.forEach((minion) => {
+//             expect(minion).to.have.ownProperty('id');
+//             expect(minion).to.have.ownProperty('name');
+//             expect(minion).to.have.ownProperty('title');
+//             expect(minion).to.have.ownProperty('weaknesses');
+//             expect(minion).to.have.ownProperty('salary');
 //           });
 //         });
 //     });
 
 //   });
 
-//   describe('GET /ideas/:ideaId', function() {
-
-//     it('returns a single idea object', function() {
-//       return request(app)
-//         .get(`/api/ideas/1`)
-//         .expect(200)
-//         .then(response => response.body)
-//         .then((idea) => {
-//           expect(idea).to.be.an.instanceOf(Object);
-//           expect(idea).to.not.be.an.instanceOf(Array);
-//         });
-//     });
-
-//     it('returns a full idea object with correct properties', function() {
-//       return request(app)
-//       .get(`/api/ideas/1`)
-//       .expect(200)
-//       .then((response) => response.body)
-//       .then((idea) => {
-//         expect(idea).to.have.ownProperty('id');
-//         expect(idea).to.have.ownProperty('name');
-//         expect(idea).to.have.ownProperty('description');
-//         expect(idea).to.have.ownProperty('weeklyRevenue');
-//         expect(idea).to.have.ownProperty('numWeeks');
+//   describe('GET /minions/:minionId', function() {
+  
+//       it('returns a single minion object', function() {
+//         return request(app)
+//           .get(`/api/minions/1`)
+//           .expect(200)
+//           .then((response) => {
+//             const minion = response.body;
+//             expect(minion).to.be.an.instanceOf(Object);
+//             expect(minion).to.not.be.an.instanceOf(Array);
+//           });
 //       });
-//     });
-
-//     it('returned idea has the correct id', function() {
-//       return request(app)
-//         .get(`/api/ideas/1`)
+  
+//       it('returns a full minion object', function() {
+//         return request(app)
+//         .get(`/api/minions/1`)
 //         .expect(200)
-//         .then((response) => response.body)
-//         .then((idea) => {
-//           expect(idea.id).to.equal('1');
+//         .then((response) => {
+//           let minion = response.body;
+//           expect(minion).to.have.ownProperty('id');
+//           expect(minion).to.have.ownProperty('name');
+//           expect(minion).to.have.ownProperty('title');
+//           expect(minion).to.have.ownProperty('weaknesses');
+//           expect(minion).to.have.ownProperty('salary');
 //         });
-//     });
+//       });
+  
+//       it('returned minion has the correct id', function() {
+//         return request(app)
+//           .get(`/api/minions/1`)
+//           .expect(200)
+//           .then((response) => {
+//             let minion = response.body;
+//             expect(minion.id).to.be.an.equal('1');
+//           });
+//       });
 
 //     it('called with a non-numeric ID returns a 404 error', function() {
 //       return request(app)
-//         .get('/api/ideas/notAnId')
+//         .get('/api/minions/notAnId')
 //         .expect(404);
 //     });
 
 //     it('called with an invalid ID returns a 404 error', function() {
 //       return request(app)
-//         .get('/api/ideas/450')
+//         .get('/api/minions/450')
 //         .expect(404);
 //     });
 
 //   });
 
-//   describe('PUT /api/ideas/:ideaId', function() {
-
-//     it('updates the correct idea and returns it', function() {
-//       let initialIdea;
-//       let updatedIdeaInfo;
+//   describe('PUT /api/minions/:minionId', function() {
+    
+//     it('updates the correct minion and returns it', function() {
+//       let initialMinion;
+//       let updatedMinionInfo;
 //       return request(app)
-//         .get('/api/ideas/1')
+//         .get('/api/minions/1')
 //         .then((response) => {
-//           initialIdea = response.body
+//           initialMinion = response.body
 //         })
 //         .then(() => {
-//           updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Test'});
+//           updatedMinionInfo = Object.assign({}, initialMinion, {name: 'Test'});
 //           return request(app)
-//             .put('/api/ideas/1')
-//             .send(updatedIdeaInfo);
+//             .put('/api/minions/1')
+//             .send(updatedMinionInfo);
 //         })
 //         .then((response) => {
-//           expect(response.body).to.be.deep.equal(updatedIdeaInfo);
+//           expect(response.body).to.be.deep.equal(updatedMinionInfo);
 //         });
 //     });
 
-//     it('updates the correct idea and persists to the database', function() {
-//       let initialIdea;
-//       let updatedIdeaInfo;
+//     it('updates the correct minion and persists to the database', function() {
+//       let initialMinion;
+//       let updatedMinionInfo;
 //       return request(app)
-//         .get('/api/ideas/1')
+//         .get('/api/minions/1')
 //         .then((response) => {
-//           initialIdea = response.body
+//           initialMinion = response.body
 //         })
 //         .then(() => {
-//           updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Persistence Test'});
+//           updatedMinionInfo = Object.assign({}, initialMinion, {name: 'Persistence Test'});
 //           return request(app)
-//             .put('/api/ideas/1')
-//             .send(updatedIdeaInfo);
+//             .put('/api/minions/1')
+//             .send(updatedMinionInfo);
 //         })
 //         .then(() => {
 //           return request(app)
-//             .get('/api/ideas/1');
+//             .get('/api/minions/1');
 //         })
 //         .then((response) => response.body)
-//         .then((ideaFromDatabase) => {
-//           expect(ideaFromDatabase.name).to.equal('Persistence Test');
+//         .then(minionFromDatabase => {
+//           expect(minionFromDatabase.name).to.equal('Persistence Test');
 //         });
 //     });
 
 //     it('called with a non-numeric ID returns a 404 error', function() {
 //       return request(app)
-//         .put('/api/ideas/notAnId')
+//         .put('/api/minions/notAnId')
 //         .expect(404);
 //     });
 
 //     it('called with an invalid ID returns a 404 error', function() {
 //       return request(app)
-//         .put('/api/ideas/450')
+//         .put('/api/minions/450')
 //         .expect(404);
 //     });
 
 //     it('called with an invalid ID does not change the database array', function() {
-//       let initialIdeasArray;
+//       let initialMinionsArray;
 //       return request(app)
-//         .get('/api/ideas')
+//         .get('/api/minions')
 //         .then((response) => {
-//           initialIdeasArray = response.body;
+//           initialMinionsArray = response.body;
 //         })
 //         .then(() => {
 //           return request(app)
-//             .put('/api/ideas/notAnId')
+//             .put('/api/minions/notAnId')
 //             .send({key: 'value'});
 //         })
 //         .then(() => {
-//           return request(app).get('/api/ideas');
+//           return request(app).get('/api/minions');
 //         })
-//         .then((response) => response.body)
-//         .then((postRequestIdeasArray) => {
-//           expect(initialIdeasArray).to.be.deep.equal(postRequestIdeasArray);
+//         .then((afterPutResponse) => {
+//           let postRequestMinionsArray = afterPutResponse.body;
+//           expect(initialMinionsArray).to.be.deep.equal(postRequestMinionsArray);
 //         });
 //     });
 
-
 //   });
 
-//   describe('POST /api/ideas', function() {
+//   describe('POST /api/minions', function() {
 
-//     it('should add a new idea if all supplied information is correct', function() {
-//       let initialIdeasArray;
-//       let newIdeaObject = {
+//     it('should add a new minion if all supplied information is correct', function() {
+//       let initialMinionsArray;
+//       let newMinionObject = {
 //         name: 'Test',
-//         description: '',
-//         weeklyRevenue: 200000,
-//         numWeeks: 10,
+//         title: '',
+//         salary: 0,
+//         weaknesses: '',
 //       }
 //       return request(app)
-//         .get('/api/ideas')
+//         .get('/api/minions')
 //         .then((response) => {
-//           initialIdeasArray = response.body;
+//           initialMinionsArray = response.body;
 //         })
 //         .then(() => {
 //           return request(app)
-//             .post('/api/ideas')
-//             .send(newIdeaObject)
+//             .post('/api/minions')
+//             .send(newMinionObject)
 //             .expect(201);
 //         })
 //         .then((response) => response.body)
-//         .then((createdIdea) => {
-//           newIdeaObject.id = createdIdea.id;
-//           expect(newIdeaObject).to.be.deep.equal(createdIdea);
+//         .then((createdMinion) => {
+//           newMinionObject.id = createdMinion.id;
+//           expect(newMinionObject).to.be.deep.equal(createdMinion);
 //         });
 //     });
 
 //   });
 
-//   describe('DELETE /api/ideas', function() {
+//   describe('DELETE /api/minions', function() {
     
 //     it('deletes the correct minion by id', function() {
-//       let initialIdeasArray;
+//       let initialMinionsArray;
 //       return request(app)
-//         .get('/api/ideas')
+//         .get('/api/minions')
 //         .then((response) => {
-//           initialIdeasArray = response.body;
+//           initialMinionsArray = response.body;
 //         })
 //         .then(() => {
 //           return request(app)
-//             .delete('/api/ideas/1')
+//             .delete('/api/minions/1')
 //             .expect(204);
 //         })
 //         .then(() => {
 //           return request(app)
-//             .get('/api/ideas');
+//             .get('/api/minions');
 //         })
 //         .then((response) => response.body)
-//         .then((afterDeleteIdeasArray) => {
-//           expect(afterDeleteIdeasArray).to.not.be.deep.equal(initialIdeasArray);
-//           let shouldBeDeletedIdea = afterDeleteIdeasArray.find(el => el.id === '1');
-//           expect(shouldBeDeletedIdea).to.be.undefined;
+//         .then((afterDeleteMinionsArray) => {
+//           expect(afterDeleteMinionsArray).to.not.be.deep.equal(initialMinionsArray);
+//           let shouldBeDeletedMinion = afterDeleteMinionsArray.find(el => el.id === '1');
+//           expect(shouldBeDeletedMinion).to.be.undefined;
 //         });
+
 //     });
 
 //     it('called with a non-numeric ID returns a 404 error', function() {
 //       return request(app)
-//         .delete('/api/ideas/notAnId')
+//         .delete('/api/minions/notAnId')
 //         .expect(404);
 //     });
-  
+
 //     it('called with an invalid ID returns a 404 error', function() {
 //       return request(app)
-//         .delete('/api/ideas/450')
+//         .delete('/api/minions/450')
 //         .expect(404);
 //     });
 
 //   });
 
 // });
+
+describe('/api/ideas routes', function() {
+  let fakeDb = require('../server/db.js');
+
+  describe('GET /api/ideas', function() {
+
+    it('returns an array', function() {
+      return request(app)
+        .get('/api/ideas')
+        .expect(200)
+        .then((response) => {
+          expect(response.body).to.be.an.instanceOf(Array);
+        });
+    });
+
+    it('returns an array of all ideas', function() {
+      return request(app)
+        .get('/api/ideas')
+        .expect(200)
+        .then((response) => {
+          let length = fakeDb.getAllFromDatabase('ideas').length;
+          expect(response.body.length).to.be.equal(length);
+          response.body.forEach((idea) => {
+            expect(idea).to.have.ownProperty('id');
+            expect(idea).to.have.ownProperty('name');
+            expect(idea).to.have.ownProperty('description');
+            expect(idea).to.have.ownProperty('weeklyRevenue');
+            expect(idea).to.have.ownProperty('numWeeks');
+          });
+        });
+    });
+
+  });
+
+  describe('GET /ideas/:ideaId', function() {
+
+    it('returns a single idea object', function() {
+      return request(app)
+        .get(`/api/ideas/1`)
+        .expect(200)
+        .then(response => response.body)
+        .then((idea) => {
+          expect(idea).to.be.an.instanceOf(Object);
+          expect(idea).to.not.be.an.instanceOf(Array);
+        });
+    });
+
+    it('returns a full idea object with correct properties', function() {
+      return request(app)
+      .get(`/api/ideas/1`)
+      .expect(200)
+      .then((response) => response.body)
+      .then((idea) => {
+        expect(idea).to.have.ownProperty('id');
+        expect(idea).to.have.ownProperty('name');
+        expect(idea).to.have.ownProperty('description');
+        expect(idea).to.have.ownProperty('weeklyRevenue');
+        expect(idea).to.have.ownProperty('numWeeks');
+      });
+    });
+
+    it('returned idea has the correct id', function() {
+      return request(app)
+        .get(`/api/ideas/1`)
+        .expect(200)
+        .then((response) => response.body)
+        .then((idea) => {
+          expect(idea.id).to.equal('1');
+        });
+    });
+
+    it('called with a non-numeric ID returns a 404 error', function() {
+      return request(app)
+        .get('/api/ideas/notAnId')
+        .expect(404);
+    });
+
+    it('called with an invalid ID returns a 404 error', function() {
+      return request(app)
+        .get('/api/ideas/450')
+        .expect(404);
+    });
+
+  });
+
+  describe('PUT /api/ideas/:ideaId', function() {
+
+    it('updates the correct idea and returns it', function() {
+      let initialIdea;
+      let updatedIdeaInfo;
+      return request(app)
+        .get('/api/ideas/1')
+        .then((response) => {
+          initialIdea = response.body
+        })
+        .then(() => {
+          updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Test'});
+          return request(app)
+            .put('/api/ideas/1')
+            .send(updatedIdeaInfo);
+        })
+        .then((response) => {
+          expect(response.body).to.be.deep.equal(updatedIdeaInfo);
+        });
+    });
+
+    it('updates the correct idea and persists to the database', function() {
+      let initialIdea;
+      let updatedIdeaInfo;
+      return request(app)
+        .get('/api/ideas/1')
+        .then((response) => {
+          initialIdea = response.body
+        })
+        .then(() => {
+          updatedIdeaInfo = Object.assign({}, initialIdea, {name: 'Persistence Test'});
+          return request(app)
+            .put('/api/ideas/1')
+            .send(updatedIdeaInfo);
+        })
+        .then(() => {
+          return request(app)
+            .get('/api/ideas/1');
+        })
+        .then((response) => response.body)
+        .then((ideaFromDatabase) => {
+          expect(ideaFromDatabase.name).to.equal('Persistence Test');
+        });
+    });
+
+    it('called with a non-numeric ID returns a 404 error', function() {
+      return request(app)
+        .put('/api/ideas/notAnId')
+        .expect(404);
+    });
+
+    it('called with an invalid ID returns a 404 error', function() {
+      return request(app)
+        .put('/api/ideas/450')
+        .expect(404);
+    });
+
+    it('called with an invalid ID does not change the database array', function() {
+      let initialIdeasArray;
+      return request(app)
+        .get('/api/ideas')
+        .then((response) => {
+          initialIdeasArray = response.body;
+        })
+        .then(() => {
+          return request(app)
+            .put('/api/ideas/notAnId')
+            .send({key: 'value'});
+        })
+        .then(() => {
+          return request(app).get('/api/ideas');
+        })
+        .then((response) => response.body)
+        .then((postRequestIdeasArray) => {
+          expect(initialIdeasArray).to.be.deep.equal(postRequestIdeasArray);
+        });
+    });
+
+
+  });
+
+  describe('POST /api/ideas', function() {
+
+    it('should add a new idea if all supplied information is correct', function() {
+      let initialIdeasArray;
+      let newIdeaObject = {
+        name: 'Test',
+        description: '',
+        weeklyRevenue: 200000,
+        numWeeks: 10,
+      }
+      return request(app)
+        .get('/api/ideas')
+        .then((response) => {
+          initialIdeasArray = response.body;
+        })
+        .then(() => {
+          return request(app)
+            .post('/api/ideas')
+            .send(newIdeaObject)
+            .expect(201);
+        })
+        .then((response) => response.body)
+        .then((createdIdea) => {
+          newIdeaObject.id = createdIdea.id;
+          expect(newIdeaObject).to.be.deep.equal(createdIdea);
+        });
+    });
+
+  });
+
+  describe('DELETE /api/ideas', function() {
+    
+    it('deletes the correct minion by id', function() {
+      let initialIdeasArray;
+      return request(app)
+        .get('/api/ideas')
+        .then((response) => {
+          initialIdeasArray = response.body;
+        })
+        .then(() => {
+          return request(app)
+            .delete('/api/ideas/1')
+            .expect(204);
+        })
+        .then(() => {
+          return request(app)
+            .get('/api/ideas');
+        })
+        .then((response) => response.body)
+        .then((afterDeleteIdeasArray) => {
+          expect(afterDeleteIdeasArray).to.not.be.deep.equal(initialIdeasArray);
+          let shouldBeDeletedIdea = afterDeleteIdeasArray.find(el => el.id === '1');
+          expect(shouldBeDeletedIdea).to.be.undefined;
+        });
+    });
+
+    it('called with a non-numeric ID returns a 404 error', function() {
+      return request(app)
+        .delete('/api/ideas/notAnId')
+        .expect(404);
+    });
+  
+    it('called with an invalid ID returns a 404 error', function() {
+      return request(app)
+        .delete('/api/ideas/450')
+        .expect(404);
+    });
+
+  });
+
+});
 
 // describe('checkMillionDollarIdea middleware', function() {
 
