@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors')
 const bodyParser = require('body-parser')
+const morgan = require("morgan")
 module.exports = app;
 
 
@@ -13,7 +14,7 @@ const PORT = process.env.PORT || 4001;
 // Add middleware for handling CORS requests from index.html
 app.use(cors())
 app.use(express.static('/'));
-
+app.use(morgan('dev'))
 // Add middware for parsing request bodies here:
 app.use(bodyParser.json())
 
